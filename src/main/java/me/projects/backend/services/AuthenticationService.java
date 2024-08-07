@@ -1,8 +1,12 @@
 package me.projects.backend.services;
 
 
+import lombok.AllArgsConstructor;
 import me.projects.backend.dtos.RegisterUserDto;
+import me.projects.backend.entities.Role;
 import me.projects.backend.entities.User;
+import me.projects.backend.enums.RoleEnum;
+import me.projects.backend.repositories.RoleRepository;
 import me.projects.backend.repositories.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,6 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import me.projects.backend.dtos.LoginUserDto;
 
+import java.util.Optional;
+
+@AllArgsConstructor
 @Service
 public class AuthenticationService {
     private final UserRepository userRepository;
@@ -17,22 +24,22 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationManager authenticationManager;
+    private final RoleRepository roleRepository;
 
-    public AuthenticationService(
-            UserRepository userRepository,
-            AuthenticationManager authenticationManager,
-            PasswordEncoder passwordEncoder
-    ) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
 
     public User signup(RegisterUserDto input) {
-        User user = new User();
+        Optional<Role> optionalRole = roleRepository.findByName(RoleEnum.USER);
+
+        if (optionalRole.isEmpty()) {
+            return null;
+        }
+
+        var user = new User();
         user.setFullName(input.getFullName());
-        user.setPassword(passwordEncoder.encode(input.getPassword()));
         user.setEmail(input.getEmail());
+        user.setPassword(passwordEncoder.encode(input.getPassword()));
+        user.setRole(optionalRole.get());
+
         return userRepository.save(user);
     }
 

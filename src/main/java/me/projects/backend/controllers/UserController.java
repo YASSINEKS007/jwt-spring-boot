@@ -3,6 +3,7 @@ package me.projects.backend.controllers;
 import me.projects.backend.entities.User;
 import me.projects.backend.services.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +32,16 @@ public class UserController {
     }
 
     @GetMapping("/")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<User>> allUsers() {
+        List <User> users = userService.allUsers();
+
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<List<User>> allUsersAllowed() {
         List <User> users = userService.allUsers();
 
         return ResponseEntity.ok(users);
